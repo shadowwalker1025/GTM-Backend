@@ -7,8 +7,17 @@ const fs = require("fs");
 
 // Add employee route
 const addEmployee = (req, res) => {
-  const { employeeId, emailId, fullName, position, department, password, date } =
-    req.body;
+  const {
+    employeeId,
+    emailId,
+    fullName,
+    position,
+    department,
+    password,
+    date,
+    salary,
+    shift,
+  } = req.body;
 
   // Hash the password before saving to MongoDB
   bcrypt.hash(password, 10, (err, hashedPassword) => {
@@ -24,6 +33,8 @@ const addEmployee = (req, res) => {
         department,
         password: hashedPassword,
         date,
+        salary,
+        shift,
       });
 
       // Save the employee data to MongoDB
@@ -32,14 +43,23 @@ const addEmployee = (req, res) => {
         .then(() => {
           // Generate PDF
           const pdfDoc = new PDFDocument();
-          const filePath = `/Users/nagatere/Downloads/GTM/Backend_GTM/hrms/employee_offerletters_pdf/employee${employeeId}.pdf`; // File path to save the PDF
+          const filePath = path.join(
+            __dirname,
+            `../employee_offerletters_pdf/employee${employeeId}.pdf`
+          ); // File path to save the PDF
           pdfDoc.pipe(fs.createWriteStream(filePath));
           pdfDoc.fontSize(20).text("Employee Details", { underline: true });
           pdfDoc.fontSize(12).text(`Employee ID: ${employeeId}`);
           pdfDoc.fontSize(12).text(`Full Name: ${fullName}`);
           pdfDoc.fontSize(12).text(`Position: ${position}`);
           pdfDoc.fontSize(12).text(`Department: ${department}`);
-          pdfDoc.fontSize(12).text(`Dear ${fullName},\n\nCongratulations! You have been added as a new employee to our company. Your employee ID is ${employeeId} and password is ${password}.\n\nWelcome aboard!\n\nBest regards,\nThe HR Team`);
+          pdfDoc.fontSize(12).text(`Salary: ${salary}`);
+          pdfDoc.fontSize(12).text(`Shift: ${shift}`);
+          pdfDoc
+            .fontSize(12)
+            .text(
+              `Dear ${fullName},\n\nCongratulations! You have been added as a new employee to our company. Your employee ID is ${employeeId} and password is ${password}.\n\nWelcome aboard!\n\nBest regards,\nThe HR Team`
+            );
           pdfDoc.end();
 
           // Send email to the employee
@@ -82,6 +102,7 @@ const addEmployee = (req, res) => {
     }
   });
 };
+
 // Get all employees route
 const getAllEmployees = (req, res) => {
   Employee.find()
@@ -100,48 +121,49 @@ const getEmployeeById = (req, res) => {
   Employee.findOne({ employeeId: employeeId })
     .then((employee) => {
       if (!employee) {
-        res.status(404).json({ error: 'Employee not found' });
+        res.status(404).json({ error: "Employee not found" });
       } else {
         res.json(employee);
       }
     })
     .catch((error) => {
-      res.status(500).json({ error: 'Failed to fetch employee' });
+      res.status(500).json({ error: "Failed to fetch employee" });
     });
 };
 
 // Update employee route
 const updateEmployee = (req, res) => {
   const employeeId = req.params.id;
-  const { fullName, position, department, password } = req.body;
+  const { fullName, position, department, password, salary, shift } = req.body;
 
   Employee.findOne({ employeeId: employeeId })
     .then((employee) => {
       if (!employee) {
-        res.status(404).json({ error: 'Employee not found' });
+        res.status(404).json({ error: "Employee not found" });
       } else {
         // Update the employee details
         employee.fullName = fullName;
         employee.position = position;
         employee.department = department;
         employee.password = password;
+        employee.salary = salary;
+        employee.shift = shift;
 
         // Save the updated employee data to MongoDB
         employee
           .save()
           .then(() => {
-            res.json({ message: 'Employee updated successfully' });
+            res.json({ message: "Employee updated successfully" });
           })
           .catch((error) => {
-            res.status(500).json({ error: 'Failed to update employee' });
+            res.status(500).json({ error: "Failed to update employee" });
           });
       }
     })
     .catch((error) => {
-      res.status(500).json({ error: 'Failed to fetch employee' });
+      res.status(500).json({ error: "Failed to fetch employee" });
     });
 };
-  
 
 module.exports = {
   addEmployee,

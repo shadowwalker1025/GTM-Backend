@@ -1,10 +1,10 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
-
+const attendanceLoginRoutes = require('./routes/attendanceLoginRoutes');
+const attendanceLogoutRoutes = require('./routes/attendanceLogoutRoutes')
 
 const app = express();
 
@@ -23,10 +23,11 @@ app.use(bodyParser.json());
 
 app.use('/api', authRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/attendance/login', attendanceLoginRoutes);
+app.use('/api/attendance/logout', attendanceLogoutRoutes);
 
 
-
-const port = 3005;
+const port = 3021;
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });
